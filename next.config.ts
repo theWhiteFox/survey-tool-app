@@ -1,7 +1,15 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from "next"
 
 const nextConfig: NextConfig = {
-  /* config options here */
-};
+    async rewrites() {
+        return [
+            {
+                source: '/api/:path*',
+                destination: 'https://your-external-site.com/:path*'
+            }
+        ]
+    }
+}
 
 export default nextConfig;
+
