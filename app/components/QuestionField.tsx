@@ -1,4 +1,4 @@
-import type { Question } from '../lib/definitions'
+import type { Question } from '../lib/schemas'
 
 interface Props {
   question: Question
@@ -12,7 +12,7 @@ export default function QuestionField({ question }: Props) {
       {question.type === 'single_choice' && (
         question.options?.map((option: string) => (
           <label key={`${question.id}-${option}`} className="block text-gray-700 mb-2">
-            <input type="radio" name={question.question}
+            <input type="radio" name={question.id}
               value={option}
               className="mr-2" />
             {option}
@@ -22,7 +22,7 @@ export default function QuestionField({ question }: Props) {
       {question.type === 'multiple_choice' && (
         question.options?.map((option: string) => (
           <label key={`${question.id}-${option}`} className="block mb-2">
-            <input type="checkbox" name={`${question.id}[]`} value={option}
+            <input type="checkbox" name={question.id} value={option}
               className="mr-2" />
             {option}
           </label>

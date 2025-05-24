@@ -114,9 +114,10 @@ _As provided by the challenge:_
 
 This project presented several real-world development challenges, particularly around API integration and environmental differences, which required careful debugging:
 
-1.  **API Payload Mismatches (422 Unprocessable Content):**
-    * **Challenge:** The API expected a very specific nested array structure for responses (`{"responses": [{"question_id": "...", "selected_option": "..."}]}`), which was initially different from a flat object collected directly from `FormData`.
-    * **Solution:** Implemented a transformation step in `SurveyForm.tsx` to map raw form data into the API's required array of objects, correctly assigning `question_id` and using `selected_option` as the answer key.
+1.  **API Payload Mismatches (422 Unprocessable Content / Initial 500 Internal Server Error):**
+    * **Challenge:** The API expected a very specific nested array structure for responses (`{"responses": [{"question_id": "...", "selected_option": "..."}]}`), but my initial form submissions were sending an empty `responses` array, which resulted in a `500 Internal Server Error` form the backend(indicating an unhandled error due to invalid input).
+    * **Root Cause:** The input elements within the `QuestionField` component were not correctly setting their `name` attributes to match the `question.id` values expected by the `SurveyForm`'s `FormData` passing logic. For example, radio buttons used `name={question.question}` instead of `name={question.id}`, nd checkboxes used `name={${question.id}[]}`which FormData interprets differently instead of `name={question.id}`. this meant `FormData` wasn't able to extract the answers correctly, leading to an empty array being sent.
+    * **Solution:** Modified `QuestionField.tsx` to ensure all input elements (`<input>, <textarea>`) used `name={question.id}`. For `multiple_choice` checkboxes, setting `name={question.id}` allowed the `SurveyForm`'s `FormData` processing logic to correctly aggregate multiple selected options into an array under the `question.id` key. This aligned the frontend's form data collection with the backend's expected `question.id` keys, resolving the empty payload and the `500 Internal Server Error`.
 
 2.  **Cross-Origin Resource Sharing (CORS) Issues (NetworkError):**
     * **Challenge:** Direct `Workspace` calls from `http://localhost:3000` to the remote API (`https://interview.staging.derilinx.com`) were blocked by browser security policies because the API's `Access-Control-Allow-Origin` header did not include `localhost`.
@@ -125,11 +126,6 @@ This project presented several real-world development challenges, particularly a
 3.  **Server-Side `Workspace` URL Parsing (`TypeError: Failed to parse URL`):**
     * **Challenge:** After implementing the proxy, `Workspace` calls made within Next.js Server Components failed because they require absolute URLs, not relative paths like `/api/...`.
     * **Solution:** Used `process.env.NEXT_PUBLIC_APP_BASE_URL` to dynamically construct full absolute URLs (e.g., `http://localhost:3000/api/...`), ensuring `Workspace` works correctly in both server and client environments.
-
-4.  **Persistent `500 Internal Server Error` on Survey Submission:**
-    * **Challenge:** Even after addressing all client-side issues (CORS, correct payload, correct `question_id` values, correct `selected_option` values via dropdowns), `POST /surveys/{id}/responses` consistently returns a `500 Internal Server Error` from the API, despite the *identical request payload successfully working via Swagger/Curl*. The API's error response provides no further details beyond "Internal Server Error."
-    * **Investigation:** Meticulously confirmed payload structure, `question_id` values (from fetched survey data), and `selected_option` values (guaranteed by `<select>` dropdowns) match API expectations.
-    * **Conclusion:** This indicates an **unhandled exception or configuration issue on the API provider's server**, which is beyond the scope of frontend code to resolve. In a production scenario, this would necessitate contacting the API team with the exact request details for their internal debugging.
 
 ## Future Improvements
 

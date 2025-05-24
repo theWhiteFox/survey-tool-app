@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Survey } from '../lib/definitions'
+import { Survey } from '../lib/schemas'
 import { fetchAllSurveys } from '../lib/data'
 
 export default async function SurveysTable() {
@@ -105,7 +105,6 @@ export default async function SurveysTable() {
                                         <div className="flex items-center gap-3">
                                             <Link
                                                 href={`/surveys/${survey.id}`}
-                                                target="_blank"
                                                 className="text-blue-500 hover:underline block"
                                                 aria-label={`View survey: ${survey.title}`}
                                             >

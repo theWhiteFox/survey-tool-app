@@ -1,5 +1,5 @@
-import type { Question, Survey } from '../../lib/definitions'
-import SurveyForm from '../../components/SurveyForm'
+import type { Question, Survey } from '@/app/lib/schemas'
+import SurveyForm from '@/app/components/SurveyForm'
 import { fetchSurveyById } from '@/app/lib/data'
 import { notFound } from 'next/navigation'
 
@@ -17,8 +17,6 @@ export default async function Survey({ params }: SurveyDetailPageProps) {
     if (!survey) {
         notFound()
     }
-
-    console.log("DEBUG: Survey Data Fetched for Form:", JSON.stringify(survey, null, 2))
 
     const formattedQuestions: Question[] = survey.questions.map(q => ({
         id: q.id,

@@ -1,8 +1,16 @@
-import { QuestionResult, Survey } from './definitions'
+import { z } from 'zod'
+import {
+    Survey,
+    QuestionResponse,
+    SurveySchema,
+    QuestionResponseSchema,
+    PostResponseItem,
+    PostResponsesBodySchema,
+    PostSurveySuccessResponse
+} from './schemas'
 import { surveysResponse } from './mock-data/surveys'
 import { response as mockQuestionResult } from './mock-data/response-q1'
 
-// const BASE_URL = 'https://interview.staging.derilinx.com'
 const APP_ORIGIN = process.env.NEXT_PUBLIC_APP_BASE_URL || process.env.NEXT_PUBLIC_VERCEL_URL || 'http://localhost:3000'
 const BASE_URL = `${APP_ORIGIN}/api`
 const API_TOKEN = 'uNjuRUsFONzKnjOk'
@@ -39,11 +47,17 @@ export async function fetchAllSurveys(): Promise<Survey[]> {
             throw new Error(`HTTP error! status: ${response.status}, message: ${errorText || response.statusText}`)
         }
         const data = await response.json()
-        return data
+        const validatedData = z.array(SurveySchema).parse(data)
+        return validatedData
     } catch (error) {
         logFetchError(url, error)
         console.warn(`Falling back to mock data for ${url}`)
-        return surveysResponse.surveys
+        try {
+            return z.array(SurveySchema).parse(surveysResponse.surveys)
+        } catch (mockError) {
+            console.log("Mock data it failed Zod validation!", mockError)
+            return []
+        }
     }
 }
 
@@ -56,17 +70,27 @@ export async function fetchSurveyById(surveyId: number): Promise<Survey | null> 
             throw new Error(`HTTP error! status: ${response.status}, message: ${errorText || response.statusText}`)
         }
         const data = await response.json()
-        return data
+        const validatedData = SurveySchema.parse(data)
+        return validatedData
     } catch (error) {
         logFetchError(url, error)
         console.warn(`Falling back to mock data for ${url}`)
-        return surveysResponse.surveys.find(s => s.id === surveyId) || null
+        try {
+            const mockSurvey = surveysResponse.surveys.find((survey: { id: number }) => survey.id === surveyId) || null
+            if (mockSurvey) {
+                return SurveySchema.parse(mockSurvey)
+            }
+            return null
+        } catch (mockError) {
+            console.error("mock survey data itself failed Zod validation!", mockError)
+            return null
+        }
     }
 }
 
-export async function fetchSurveyResponses(surveyId: number, questionId: string): Promise<QuestionResult> {
+export async function fetchSurveyResponses(surveyId: number, questionId: string): Promise<QuestionResponse> {
     const url = `${BASE_URL}/surveys/${surveyId}/responses?question_id=${questionId}`
-    console.log("DEBUG: Constructed URL for fetch:", url)
+
     try {
         const response = await fetch(url, getAuthHeaders('GET'))
         if (!response.ok) {
@@ -74,27 +98,38 @@ export async function fetchSurveyResponses(surveyId: number, questionId: string)
             throw new Error(`HTTP error! status: ${response.status}, message: ${errorText || response.statusText}`)
         }
         const data = await response.json()
-        console.log("DEBUG: API Response Data:", data)
-        return data
+        const validatedData = QuestionResponseSchema.parse(data)
+        return validatedData
     } catch (error) {
         logFetchError(url, error)
-        console.warn(`Falling back to mock data for ${url}`)
-        return mockQuestionResult
+        try {
+            return QuestionResponseSchema.parse(mockQuestionResult)
+        } catch (mockError) {
+            throw mockError
+        }
     }
 }
 
 export async function postSurveyResponse(
     surveyId: number,
-    responses: Array<{ question_id: string; selected_option: string | string[] }>
-): Promise<{ status: string; id: number } | null> {
+    responses: Array<PostResponseItem>
+): Promise<PostSurveySuccessResponse | null> {
     const url = `${BASE_URL}/surveys/${surveyId}/responses`
 
     const requestBody = {
         responses: responses
     }
 
+    const validationResponse = PostResponsesBodySchema.safeParse(requestBody)
+
+    if (!validationResponse.success) {
+        throw new Error("Invalid survey response data provided")
+    }
+
+    const validRequestBody = validationResponse.data
+
     try {
-        const response = await fetch(url, getAuthHeaders('POST', requestBody))
+        const response = await fetch(url, getAuthHeaders('POST', validRequestBody))
         if (!response.ok) {
             const errorText = await response.text()
             console.error(`HTTP error! status: ${response.status}, message: ${errorText || response.statusText}`)
@@ -102,8 +137,10 @@ export async function postSurveyResponse(
         }
 
         const data: { status: string; id: number } = await response.json()
-        console.log(`Successfully posted response for Survey ID: ${surveyId}, Response ID: ${data.id}`)
-        return data
+        const postResponseSchema = z.object({ status: z.string(), id: z.number() })
+        const validatedPostResponse = postResponseSchema.parse(data)
+        return validatedPostResponse
+
     } catch (error) {
         logFetchError(url, error)
         console.error("Failed to post survey response due to an error.", error)
