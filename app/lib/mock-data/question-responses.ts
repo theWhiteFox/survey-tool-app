@@ -8,9 +8,21 @@ export const ALL_MOCK_QUESTIONS_RESPONSES: MockQuestionResponseLookup[] = [
   {
     "question_id": "q1_1",
     "survey_id": 1,
-    "total_votes": 32,
-    "option_totals": { "Excellent": 20, "Good": 8, "Fair": 2, "Poor": 1, "Ok": 1 },
-    "percentages": { "Excellent": 62.5, "Good": 25, "Fair": 6.25, "Poor": 3.12, "Ok": 3.12 }
+    "total_votes": 35,
+    "option_totals": {
+      "Excellent": 20,
+      "Good": 8,
+      "Fair": 2,
+      "Poor": 3,
+      "Ok": 2
+    },
+    "percentages": {
+      "Excellent": 57.14,
+      "Good": 22.86,
+      "Fair": 5.71,
+      "Poor": 8.57,
+      "Ok": 5.71
+    }
   },
   {
     "question_id": "q1_2",
@@ -30,8 +42,18 @@ export const ALL_MOCK_QUESTIONS_RESPONSES: MockQuestionResponseLookup[] = [
     "question_id": "q2_2",
     "survey_id": 2,
     "total_votes": 100,
-    "option_totals": { "Health Insurance": 60, "Remote Work": 80, "Flexible Hours": 75, "Bonuses": 90 },
-    "percentages": { "Health Insurance": 60.00, "Remote Work": 80.00, "Flexible Hours": 75.00, "Bonuses": 90.00 }
+    "option_totals": {
+      "Health Insurance": 2,
+      "Remote Work": 80,
+      "Flexible Hours": 75,
+      "Bonuses": 90
+    },
+    "percentages": {
+      "Health Insurance": 2.00,
+      "Remote Work": 80.00,
+      "Flexible Hours": 75.00,
+      "Bonuses": 90.00
+    }
   },
   {
     "question_id": "q3_1",
@@ -135,8 +157,8 @@ export const ALL_MOCK_QUESTIONS_RESPONSES: MockQuestionResponseLookup[] = [
     "question_id": "q8_2",
     "survey_id": 8,
     "total_votes": 95,
-    "option_totals": { "Excellent": 60, "Good": 30, "Okay": 4, "Poor": 1 },
-    "percentages": { "Excellent": 63.16, "Good": 31.58, "Okay": 4.21, "Poor": 1.05 }
+    "option_totals": { "Excellent": 60, "Good": 30, "Ok": 4, "Poor": 1 },
+    "percentages": { "Excellent": 63.16, "Good": 31.58, "Ok": 4.21, "Poor": 1.05 }
   },
   {
     "question_id": "q9_1",
